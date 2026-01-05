@@ -1,7 +1,9 @@
 import os
 import re
 import oss2
-from flask import Flask, render_template, request, jsonify
+import urllib.parse
+import mimetypes
+from flask import Flask, render_template, request, jsonify, Response
 from .config_manager import AppConfig
 
 try:
@@ -22,23 +24,58 @@ cfg = AppConfig()
 def get_oss_url_pattern():
     domain = cfg.get("OSS_DOMAIN")
     prefix = cfg.get("PREFIX")
-    if not domain or not prefix:
-        raise ValueError("请先配置 OSS_DOMAIN 和 PREFIX")
+    
+    if not prefix:
+        raise ValueError("请先配置 PREFIX")
+
+    if not domain:
+        # 如果没有配置自定义域名，则使用默认域名: bucket.endpoint
+        bucket = cfg.get("BUCKET_NAME")
+        endpoint = cfg.get("ENDPOINT")
+        if bucket and endpoint:
+            # 去除 endpoint 可能包含的协议头
+            clean_endpoint = endpoint.replace("http://", "").replace("https://", "")
+            domain = f"{bucket}.{clean_endpoint}"
+        else:
+             raise ValueError("请配置 OSS_DOMAIN 或完整的 Bucket/Endpoint 信息")
+
+    # Support both http and https
     return re.compile(
-        rf'https://{domain}/{prefix}([^\)\s\?]+)')
+        rf'https?://{domain}/{prefix}([^\)\s\?]+)')
 
 
-def get_oss_bucket():
-    ak_id = cfg.get_secret("ACCESS_KEY_ID")
-    ak_secret = cfg.get_secret("ACCESS_KEY_SECRET")
-    endpoint = cfg.get("ENDPOINT")
-    bucket_name = cfg.get("BUCKET_NAME")
-
+def create_oss_bucket(ak_id, ak_secret, endpoint, bucket_name, oss_domain=None):
+    """Helper to create OSS Bucket instance with consistent logic."""
     if not all([ak_id, ak_secret, endpoint, bucket_name]):
         raise ValueError("请先在配置页面设置 OSS 相关信息 (Access Key, Endpoint, Bucket)")
 
     auth = oss2.Auth(ak_id, ak_secret)
+    
+    # 如果配置了自定义域名，优先使用自定义域名 (CNAME)
+    if oss_domain:
+        if not oss_domain.startswith('http'):
+            oss_domain = 'https://' + oss_domain
+        elif oss_domain.startswith('http://'):
+            oss_domain = oss_domain.replace('http://', 'https://', 1)
+        return oss2.Bucket(auth, oss_domain, bucket_name, is_cname=True)
+
+    # 否则使用 Endpoint
+    if endpoint and not endpoint.startswith('http'):
+        endpoint = 'https://' + endpoint
+    elif endpoint and endpoint.startswith('http://'):
+        endpoint = endpoint.replace('http://', 'https://', 1)
+
     return oss2.Bucket(auth, endpoint, bucket_name)
+
+
+def get_oss_bucket():
+    return create_oss_bucket(
+        cfg.get_secret("ACCESS_KEY_ID"),
+        cfg.get_secret("ACCESS_KEY_SECRET"),
+        cfg.get("ENDPOINT"),
+        cfg.get("BUCKET_NAME"),
+        cfg.get("OSS_DOMAIN")
+    )
 
 
 def get_local_used_images():
@@ -62,23 +99,22 @@ def get_oss_images():
     bucket = get_oss_bucket()
     oss_files = []
     prefix = cfg.get("PREFIX")
-    oss_domain = cfg.get("OSS_DOMAIN")
     
     if not prefix:
         raise ValueError("请先配置 PREFIX")
-    if not oss_domain:
-        raise ValueError("请先配置 OSS_DOMAIN")
 
     for obj in oss2.ObjectIterator(bucket, prefix=prefix):
         if obj.key != prefix:
             filename = obj.key.replace(prefix, "")
             if filename:
-                # 在后端直接组装完整的 URL，避免前端拼接出错
-                full_url = f"https://{oss_domain}/{obj.key}"
+                # 为每个文件生成一个唯一的预览 URL
+                # 前端点击时将调用 /preview?key=xxx 来获取图片
+                preview_url = f"/preview?key={urllib.parse.quote(obj.key)}"
+                
                 oss_files.append({
                     "name": filename,
                     "key": obj.key,
-                    "url": full_url,  # 这里的 URL 将用于前端展示
+                    "url": preview_url,  # 这里的 URL 用于前端获取图片
                     "size": f"{obj.size / 1024:.2f} KB"
                 })
     return oss_files
@@ -119,52 +155,126 @@ def delete_images():
 def config():
     if request.method == 'POST':
         data = request.json
+        
+        # 验证和修复配置数据
+        fixed_config, errors = AppConfig.validate_and_fix_config(data)
+        
+        if errors:
+            return jsonify({
+                "status": "error",
+                "message": "配置验证失败",
+                "errors": errors
+            }), 400
+        
+        # 保存修复后的配置
         # Update secrets
-        if 'ACCESS_KEY_ID' in data:
-            cfg.set_secret('ACCESS_KEY_ID', data['ACCESS_KEY_ID'])
-        if 'ACCESS_KEY_SECRET' in data:
-            cfg.set_secret('ACCESS_KEY_SECRET', data['ACCESS_KEY_SECRET'])
+        if 'ACCESS_KEY_ID' in fixed_config:
+            cfg.set_secret('ACCESS_KEY_ID', fixed_config['ACCESS_KEY_ID'])
+        if 'ACCESS_KEY_SECRET' in fixed_config:
+            cfg.set_secret('ACCESS_KEY_SECRET', fixed_config['ACCESS_KEY_SECRET'])
         
         # Update standard settings
         for key in ['ENDPOINT', 'BUCKET_NAME', 'OSS_DOMAIN', 'MARKDOWN_PATH', 'PREFIX']:
-            if key in data:
-                cfg.set(key, data[key])
+            if key in fixed_config:
+                cfg.set(key, fixed_config[key])
         
-        return jsonify({"status": "success"})
+        return jsonify({
+            "status": "success",
+            "message": "配置已保存并修复"
+        })
     
     # GET request - return current config
     return jsonify({
-        "ACCESS_KEY_ID": cfg.get_secret("ACCESS_KEY_ID"),
-        "ACCESS_KEY_SECRET": cfg.get_secret("ACCESS_KEY_SECRET"),
-        "ENDPOINT": cfg.get("ENDPOINT"),
-        "BUCKET_NAME": cfg.get("BUCKET_NAME"),
-        "OSS_DOMAIN": cfg.get("OSS_DOMAIN"),
-        "MARKDOWN_PATH": cfg.get("MARKDOWN_PATH"),
-        "PREFIX": cfg.get("PREFIX")
+        "ACCESS_KEY_ID": cfg.get_secret("ACCESS_KEY_ID") or "",
+        "ACCESS_KEY_SECRET": cfg.get_secret("ACCESS_KEY_SECRET") or "",
+        "ENDPOINT": cfg.get("ENDPOINT") or "",
+        "BUCKET_NAME": cfg.get("BUCKET_NAME") or "",
+        "OSS_DOMAIN": cfg.get("OSS_DOMAIN") or "",
+        "MARKDOWN_PATH": cfg.get("MARKDOWN_PATH") or "",
+        "PREFIX": cfg.get("PREFIX") or ""
     })
 
 
 @app.route('/test-connection', methods=['POST'])
 def test_connection():
     data = request.json
-    ak_id = data.get('ACCESS_KEY_ID')
-    ak_secret = data.get('ACCESS_KEY_SECRET')
-    endpoint = data.get('ENDPOINT')
-    bucket_name = data.get('BUCKET_NAME')
-
-    if not all([ak_id, ak_secret, endpoint, bucket_name]):
-        return jsonify({"status": "error", "message": "请填写完整的 OSS 配置信息"})
-
+    
+    # 验证和修复配置数据
+    fixed_config, errors = AppConfig.validate_and_fix_config(data)
+    
+    if errors:
+        return jsonify({
+            "status": "error",
+            "message": "配置验证失败",
+            "errors": errors
+        }), 400
+    
     try:
-        auth = oss2.Auth(ak_id, ak_secret)
-        bucket = oss2.Bucket(auth, endpoint, bucket_name)
+        bucket = create_oss_bucket(
+            fixed_config.get('ACCESS_KEY_ID'),
+            fixed_config.get('ACCESS_KEY_SECRET'),
+            fixed_config.get('ENDPOINT'),
+            fixed_config.get('BUCKET_NAME'),
+            fixed_config.get('OSS_DOMAIN')
+        )
         # 尝试获取 Bucket 信息来验证连接和权限
         bucket.get_bucket_info()
-        return jsonify({"status": "success", "message": "连接成功！配置有效。"})
+        return jsonify({
+            "status": "success",
+            "message": "连接成功！配置有效。"
+        })
+    except ValueError as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 400
     except oss2.exceptions.OssError as e:
-        return jsonify({"status": "error", "message": f"OSS 错误: {e.message} (Code: {e.code})"})
+        return jsonify({
+            "status": "error",
+            "message": f"OSS 错误: {e.message} (Code: {e.code})"
+        }), 400
     except Exception as e:
-        return jsonify({"status": "error", "message": f"连接失败: {str(e)}"})
+        return jsonify({
+            "status": "error",
+            "message": f"连接失败: {str(e)}"
+        }), 400
+
+
+@app.route('/preview')
+def preview_image():
+    """获取 OSS 中的图片用于预览
+    
+    请求参数:
+        key: OSS 中的文件 key
+    
+    返回: 图片的二进制数据
+    """
+    key = request.args.get('key')
+    
+    if not key:
+        return "Key is required", 400
+    
+    try:
+        bucket = get_oss_bucket()
+        # 通过 OSS2 直接获取图片对象
+        result = bucket.get_object(key)
+        
+        # 确定 MIME 类型
+        mime_type = result.headers.get('Content-Type')
+        if not mime_type or mime_type == 'application/octet-stream':
+            mime_type, _ = mimetypes.guess_type(key)
+            if not mime_type:
+                mime_type = 'application/octet-stream'
+
+        def generate():
+            for chunk in result:
+                yield chunk
+                
+        return Response(generate(), mimetype=mime_type)
+    except oss2.exceptions.OssError as e:
+        return f"OSS Error: {e}", 404
+    except Exception as e:
+        return f"Error: {e}", 500
 
 
 @app.route('/select-folder')
