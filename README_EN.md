@@ -4,7 +4,7 @@
 
 ![PyPI - Version](https://img.shields.io/pypi/v/oss-cleaner)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/oss-cleaner)
-![License](https://img.shields.io/github/license/yourusername/oss-cleaner)
+![License](https://img.shields.io/github/license/linjhs/oss-cleaner)
 
 **oss-cleaner** is a tool designed for Markdown users to manage and clean orphaned images stored in Aliyun OSS.
 
