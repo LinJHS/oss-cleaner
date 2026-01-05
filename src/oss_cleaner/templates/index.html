@@ -187,10 +187,13 @@
                 </form>
 
                 <div class="modal-footer-custom mt-4">
-                    <button class="btn btn-sm btn-outline-primary px-3 shadow-none" id="testBtn">
-                        <i class="bi bi-lightning-charge"></i> 测试连接
-                    </button>
-                    <div class="d-flex gap-2">
+                    <div class="d-flex flex-column">
+                        <button class="btn btn-sm btn-outline-primary px-3 shadow-none" id="testBtn">
+                            <i class="bi bi-lightning-charge"></i> 测试连接
+                        </button>
+                        <div id="testMsg" class="small mt-1 fw-bold"></div>
+                    </div>
+                    <div class="d-flex gap-2 align-items-start">
                         <button class="btn btn-sm btn-light px-3 shadow-none" onclick="config.close()">取消</button>
                         <button class="btn btn-sm btn-primary px-4 shadow-none" id="saveBtn" disabled>保存配置</button>
                     </div>
@@ -337,13 +340,17 @@
         $('#configForm').oninput = () => {
             testSuccess = false;
             $('#saveBtn').disabled = true;
+            $('#testMsg').innerHTML = '';
         };
 
         $('#testBtn').onclick = async () => {
             const data = Object.fromEntries(new FormData($('#configForm')));
             const btn = $('#testBtn');
+            const msg = $('#testMsg');
+            
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> 测试中';
+            msg.innerHTML = '';
 
             try {
                 const res = await fetch('/test-connection', {
@@ -353,13 +360,15 @@
                 });
                 const result = await res.json();
                 if (result.status === 'success') {
-                    alert('✅ 连接成功！现在可以保存配置了。');
+                    msg.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill"></i> 连接成功</span>';
                     testSuccess = true;
                     $('#saveBtn').disabled = false;
                 } else {
-                    alert('❌ 连接失败: ' + result.message);
+                    msg.innerHTML = `<span class="text-danger"><i class="bi bi-x-circle-fill"></i> ${result.message}</span>`;
                 }
-            } catch (e) { alert('请求异常'); }
+            } catch (e) { 
+                msg.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle-fill"></i> 请求异常</span>';
+            }
             finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="bi bi-lightning-charge"></i> 测试连接';
