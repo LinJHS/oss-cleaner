@@ -1,17 +1,20 @@
 <div align="center">
 
-# oss-cleaner
+<img src="img/logo.jpg" width="80%" alt="oss-cleaner">
 
-[English](./README_EN.md)
+<br>
 
-[![PyPI - Version](https://img.shields.io/pypi/v/oss-cleaner?style=flat-square&logo=pypi&logoColor=white)](https://pypi.org/project/oss-cleaner/)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/oss-cleaner?style=flat-square&logo=python&logoColor=white)](https://pypi.org/project/oss-cleaner/)
-[![Downloads](https://img.shields.io/pypi/dm/oss-cleaner?style=flat-square&logo=pypi&logoColor=white)](https://pypi.org/project/oss-cleaner/)
-[![License](https://img.shields.io/github/license/LinJHS/oss-cleaner?style=flat-square)](LICENSE)
+[![PyPI version](https://img.shields.io/pypi/v/oss-cleaner.svg?style=flat-square&logo=pypi&logoColor=white)](https://pypi.org/project/oss-cleaner/)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/oss-cleaner.svg?style=flat-square&logo=pypi&logoColor=white)](https://pypi.org/project/oss-cleaner/)
+[![Build Status](https://github.com/LinJHS/oss-cleaner/actions/workflows/publish.yml/badge.svg)](https://github.com/LinJHS/oss-cleaner/actions)
+[![Python Versions](https://img.shields.io/pypi/pyversions/oss-cleaner.svg?style=flat-square&logo=python&logoColor=white)](https://pypi.org/project/oss-cleaner/)
+[![License](https://img.shields.io/github/license/LinJHS/oss-cleaner.svg?style=flat-square)](https://github.com/LinJHS/oss-cleaner/blob/main/LICENSE)
+
+**一个用于管理和清理阿里云 OSS 中“无用”图片的工具，专为 Markdown 笔记用户设计。**
+
+[English Version](README_EN.md) | [功能特性](#-主要功能) • [安装](#-安装与运行) • [使用](#-快速开始-pip-安装方式)
 
 </div>
-
-**oss-cleaner** 是一个用于管理和清理阿里云 OSS 中“无用”图片的工具，专为 Markdown 笔记用户设计。
 
 它会扫描你本地的 Markdown 文件夹，分析所有引用的图片链接，并与阿里云 OSS 存储桶中的文件进行比对。任何未在本地 Markdown 文件中使用的 OSS 图片都将被标记为“无用”文件，你可以通过 Web 界面轻松查看并批量删除它们，从而节省存储空间和费用。
 
