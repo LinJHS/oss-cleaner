@@ -1,10 +1,15 @@
+<div align="center">
+
 # oss-cleaner
 
 [English](./README_EN.md)
 
-![PyPI - Version](https://img.shields.io/pypi/v/oss-cleaner)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/oss-cleaner)
-![License](https://img.shields.io/github/license/linjhs/oss-cleaner)
+[![PyPI - Version](https://img.shields.io/pypi/v/oss-cleaner?style=flat-square&logo=pypi&logoColor=white)](https://pypi.org/project/oss-cleaner/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/oss-cleaner?style=flat-square&logo=python&logoColor=white)](https://pypi.org/project/oss-cleaner/)
+[![Downloads](https://img.shields.io/pypi/dm/oss-cleaner?style=flat-square&logo=pypi&logoColor=white)](https://pypi.org/project/oss-cleaner/)
+[![License](https://img.shields.io/github/license/LinJHS/oss-cleaner?style=flat-square)](LICENSE)
+
+</div>
 
 **oss-cleaner** 是一个用于管理和清理阿里云 OSS 中“无用”图片的工具，专为 Markdown 笔记用户设计。
 
@@ -18,9 +23,28 @@
 *   **批量清理**：支持一键批量删除未使用的图片。
 *   **便捷配置**：支持通过 Web 界面或文件夹选择器轻松配置路径。
 
-## 📦 安装
+## 📦 安装与运行
 
-使用 `pip` 安装：
+### 方式一：下载可执行文件（推荐）
+
+无需安装 Python 环境，直接下载对应系统的可执行文件运行即可。
+
+1.  前往 [Releases 页面](https://github.com/LinJHS/oss-cleaner/releases) 下载最新版本：
+    *   **Windows**: 下载 `oss-cleaner-win.exe`
+    *   **macOS**: 下载 `oss-cleaner-mac`
+    *   **Linux**: 下载 `oss-cleaner-linux`
+2.  **运行程序**：
+    *   **Windows**: 双击 `oss-cleaner-win.exe` 即可。
+    *   **macOS/Linux**: 在终端赋予执行权限后运行：
+        ```bash
+        chmod +x oss-cleaner-mac  # 或 oss-cleaner-linux
+        ./oss-cleaner-mac
+        ```
+    *   程序启动后会自动打开浏览器访问 [http://localhost:6900](http://localhost:6900)。
+
+### 方式二：使用 pip 安装
+
+如果你熟悉 Python，也可以使用 `pip` 安装：
 
 ```bash
 pip install oss-cleaner
@@ -29,12 +53,12 @@ pip install oss-cleaner
 或者从源码安装（开发模式）：
 
 ```bash
-git clone https://github.com/yourusername/oss-cleaner.git
+git clone https://github.com/LinJHS/oss-cleaner.git
 cd oss-cleaner
 pip install -e .
 ```
 
-## 🚀 快速开始
+## 🚀 快速开始 (pip 安装方式)
 
 1.  **启动服务**
 

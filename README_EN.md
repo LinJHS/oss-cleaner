@@ -1,10 +1,15 @@
+<div align="center">
+
 # oss-cleaner
 
 [中文](./README.md)
 
-![PyPI - Version](https://img.shields.io/pypi/v/oss-cleaner)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/oss-cleaner)
-![License](https://img.shields.io/github/license/linjhs/oss-cleaner)
+[![PyPI - Version](https://img.shields.io/pypi/v/oss-cleaner?style=flat-square&logo=pypi&logoColor=white)](https://pypi.org/project/oss-cleaner/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/oss-cleaner?style=flat-square&logo=python&logoColor=white)](https://pypi.org/project/oss-cleaner/)
+[![Downloads](https://img.shields.io/pypi/dm/oss-cleaner?style=flat-square&logo=pypi&logoColor=white)](https://pypi.org/project/oss-cleaner/)
+[![License](https://img.shields.io/github/license/LinJHS/oss-cleaner?style=flat-square)](LICENSE)
+
+</div>
 
 **oss-cleaner** is a tool designed for Markdown users to manage and clean orphaned images stored in Aliyun OSS.
 
@@ -18,9 +23,28 @@ It scans your local Markdown folder, analyzes all referenced image links, and co
 *   **Batch Cleaning**: Supports one-click batch deletion of unused images.
 *   **Easy Configuration**: Supports easy path configuration via Web UI or folder selector.
 
-## 📦 Installation
+## 📦 Installation & Run
 
-Install via `pip`:
+### Method 1: Download Executable (Recommended)
+
+No Python environment required. Simply download and run the executable for your OS.
+
+1.  Go to [Releases Page](https://github.com/LinJHS/oss-cleaner/releases) and download the latest version:
+    *   **Windows**: Download `oss-cleaner-win.exe`
+    *   **macOS**: Download `oss-cleaner-mac`
+    *   **Linux**: Download `oss-cleaner-linux`
+2.  **Run the application**:
+    *   **Windows**: Double-click `oss-cleaner-win.exe`.
+    *   **macOS/Linux**: Grant execution permission and run in terminal:
+        ```bash
+        chmod +x oss-cleaner-mac  # or oss-cleaner-linux
+        ./oss-cleaner-mac
+        ```
+    *   The browser will automatically open [http://localhost:6900](http://localhost:6900) after startup.
+
+### Method 2: Install via pip
+
+If you have Python installed:
 
 ```bash
 pip install oss-cleaner
@@ -29,12 +53,12 @@ pip install oss-cleaner
 Or install from source (development mode):
 
 ```bash
-git clone https://github.com/yourusername/oss-cleaner.git
+git clone https://github.com/LinJHS/oss-cleaner.git
 cd oss-cleaner
 pip install -e .
 ```
 
-## 🚀 Quick Start
+## 🚀 Quick Start (pip users)
 
 1.  **Start the Service**
 
