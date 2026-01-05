@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 class AppConfig:
-    def __init__(self, app_name="oss-images-manager"):
+    def __init__(self, app_name="oss-cleaner"):
         # Simple cross-platform path logic
         base_dir = Path(os.getenv('APPDATA') or Path.home() / ".config")
         self.config_dir = base_dir / app_name

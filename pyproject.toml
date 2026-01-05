@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling", "setuptools-scm"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
@@ -24,8 +24,8 @@ include = [
 ]
 
 [tool.hatch.version]
-path = "src/oss_cleaner/_version.py"
+source = "vcs"
 
-[tool.setuptools_scm]
-write_to = "src/oss_cleaner/_version.py"
+[tool.hatch.build.hooks.vcs]
+version-file = "src/oss_cleaner/_version.py"
 
