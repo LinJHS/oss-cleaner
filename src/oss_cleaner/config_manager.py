@@ -77,7 +77,7 @@ class AppConfig:
                 oss_domain = oss_domain.replace('https://', '', 1)
             fixed['OSS_DOMAIN'] = oss_domain
         else:
-            errors.append('OSS_DOMAIN 不能为空')
+            fixed['OSS_DOMAIN'] = ''
 
         # 验证 BUCKET_NAME
         bucket_name = fixed.get('BUCKET_NAME', '').strip()
