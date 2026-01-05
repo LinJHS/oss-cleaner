@@ -82,7 +82,7 @@ jobs:
 
       - name: Build Executable
         run: |
-          pyinstaller --noconfirm --onefile --windowed --name "${{ matrix.artifact_name }}" --add-data "src/oss_cleaner/templates${{ matrix.sep }}oss_cleaner/templates" --hidden-import "oss_cleaner" run.py
+          pyinstaller --noconfirm --onefile --name "${{ matrix.artifact_name }}" --add-data "src/oss_cleaner/templates${{ matrix.sep }}oss_cleaner/templates" --hidden-import "oss_cleaner" run.py
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
