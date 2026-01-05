@@ -115,16 +115,17 @@
         /* 关闭按钮：居中、无蓝框、大图标 */
         .close-btn {
             position: absolute; top: 30px; right: 30px;
-            background: rgba(255,255,255,0.15); color: white;
-            border: 1px solid rgba(255,255,255,0.2); border-radius: 50%;
-            width: 60px; height: 60px; cursor: pointer; z-index: 100;
+            background: transparent; color: white;
+            border: none !important;
+            width: 80px; height: 80px; cursor: pointer; z-index: 100;
             display: flex; align-items: center; justify-content: center;
             transition: all 0.2s;
             outline: none !important;
             box-shadow: none !important;
         }
-        .close-btn i { font-size: 2.5rem; line-height: 1; }
-        .close-btn:hover { background: rgba(255,255,255,0.3); transform: rotate(90deg); }
+        .close-btn i { font-size: 4rem; line-height: 1; }
+        .close-btn:hover { transform: rotate(90deg); opacity: 0.8; }
+        .close-btn:focus { border: none !important; outline: none !important; }
 
         .card-info { padding: 12px 16px; border-top: 1px solid var(--border); }
         .card-info .name { font-size: 0.85rem; font-weight: 600; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -247,6 +248,7 @@
 
         // --- 1. 体积解析逻辑 (处理 0B 问题) ---
         function parseSize(text) {
+            if (!text) return 0;
             const num = parseFloat(text);
             if (isNaN(num)) return 0;
             const unit = text.toLowerCase();
@@ -280,7 +282,8 @@
                 let totalBytes = 0;
                 selected.forEach(cb => {
                     const card = cb.closest('.card');
-                    const sizeText = card.querySelector('.size-badge').textContent;
+                    const badge = card.querySelector('.size-badge') || card.querySelector('.badge');
+                    const sizeText = badge ? badge.innerText : '0';
                     totalBytes += parseSize(sizeText);
                 });
                 statInfo.innerHTML = `当前选中：<span class="text-primary fw-bold">${selected.length}</span> / ${totalCount} <span class="ms-1 badge bg-primary-subtle text-primary border-primary-subtle">${formatSize(totalBytes)}</span>`;
@@ -300,6 +303,9 @@
                 showPreview(url);
                 return;
             }
+
+            // 防止重复点击
+            if (placeholder.querySelector('.spinner-border')) return;
 
             // 第一阶段：仅执行加载
             placeholder.innerHTML = `<div class="spinner-border spinner-border-sm text-primary"></div><span class="mt-1">加载中</span>`;
