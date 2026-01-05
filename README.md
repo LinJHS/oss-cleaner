@@ -4,7 +4,7 @@
 
 ![PyPI - Version](https://img.shields.io/pypi/v/oss-cleaner)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/oss-cleaner)
-![License](https://img.shields.io/github/license/yourusername/oss-cleaner)
+![License](https://img.shields.io/github/license/linjhs/oss-cleaner)
 
 **oss-cleaner** 是一个用于管理和清理阿里云 OSS 中“无用”图片的工具，专为 Markdown 笔记用户设计。
 
