@@ -1,0 +1,92 @@
+name: Publish
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+
+  publish-pypi:
+    needs: create-release
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # Required for OIDC
+      contents: write  # Required to upload assets to release
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Important: fetch all history for hatch-vcs to find tags
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install build tools
+        run: pip install --upgrade pip build
+      - name: Build package
+        run: python -m build # hatch-vcs automatically handles _version.py generation
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Upload PyPI Assets to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+
+  build-binaries:
+    needs: create-release
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: oss-cleaner-win.exe
+            sep: ';'
+          - os: macos-latest
+            artifact_name: oss-cleaner-mac
+            sep: ':'
+          - os: ubuntu-latest
+            artifact_name: oss-cleaner-linux
+            sep: ':'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pyinstaller hatchling hatch-vcs
+          pip install .
+
+      - name: Create Entry Point
+        shell: bash
+        run: |
+          echo "from oss_cleaner.__main__ import main; main()" > run.py
+
+      - name: Build Executable
+        run: |
+          pyinstaller --noconfirm --onefile --windowed --name "${{ matrix.artifact_name }}" --add-data "src/oss_cleaner/templates${{ matrix.sep }}oss_cleaner/templates" --hidden-import "oss_cleaner" run.py
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/${{ matrix.artifact_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
