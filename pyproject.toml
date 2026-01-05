@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "oss-images-manager"
 dynamic = ["version"]
-description = "Manage and clean orphaned images stored in Aliyun OSS for Obsidian vaults."
+description = "Manage and clean orphaned images stored in Aliyun OSS for Markdown projects."
 requires-python = ">=3.8"
 dependencies = [
   "flask>=2.3",

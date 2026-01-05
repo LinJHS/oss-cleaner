@@ -9,9 +9,9 @@ app = Flask(__name__)
 # Initialize Config
 cfg = AppConfig()
 
-# 正则表达式
-OSS_URL_PATTERN = re.compile(
-    rf'https://{cfg.get("OSS_DOMAIN")}/{cfg.get("PREFIX")}([^\)\s\?]+)')
+def get_oss_url_pattern():
+    return re.compile(
+        rf'https://{cfg.get("OSS_DOMAIN")}/{cfg.get("PREFIX")}([^\)\s\?]+)')
 
 
 def get_oss_bucket():
@@ -21,16 +21,16 @@ def get_oss_bucket():
 
 def get_local_used_images():
     used_images = set()
-    obsidian_path = cfg.get("OBSIDIAN_PATH")
-    if not obsidian_path or not os.path.exists(obsidian_path):
+    markdown_path = cfg.get("MARKDOWN_PATH")
+    if not markdown_path or not os.path.exists(markdown_path):
         return set()
         
-    for root, dirs, files in os.walk(obsidian_path):
+    for root, dirs, files in os.walk(markdown_path):
         for file in files:
             if file.endswith('.md'):
                 with open(os.path.join(root, file), 'r', encoding='utf-8', errors='ignore') as f:
                     content = f.read()
-                    matches = OSS_URL_PATTERN.findall(content)
+                    matches = get_oss_url_pattern().findall(content)
                     for m in matches:
                         used_images.add(m)
     return used_images
@@ -85,6 +85,35 @@ def delete_images():
     except Exception as e:
         # 增加一个异常捕获，防止服务端报错导致前端没反应
         return jsonify({"status": "error", "message": str(e)})
+
+
+@app.route('/config', methods=['GET', 'POST'])
+def config():
+    if request.method == 'POST':
+        data = request.json
+        # Update secrets
+        if 'ACCESS_KEY_ID' in data:
+            cfg.set_secret('ACCESS_KEY_ID', data['ACCESS_KEY_ID'])
+        if 'ACCESS_KEY_SECRET' in data:
+            cfg.set_secret('ACCESS_KEY_SECRET', data['ACCESS_KEY_SECRET'])
+        
+        # Update standard settings
+        for key in ['ENDPOINT', 'BUCKET_NAME', 'OSS_DOMAIN', 'MARKDOWN_PATH', 'PREFIX']:
+            if key in data:
+                cfg.set(key, data[key])
+        
+        return jsonify({"status": "success"})
+    
+    # GET request - return current config
+    return jsonify({
+        "ACCESS_KEY_ID": cfg.get_secret("ACCESS_KEY_ID"),
+        "ACCESS_KEY_SECRET": cfg.get_secret("ACCESS_KEY_SECRET"),
+        "ENDPOINT": cfg.get("ENDPOINT"),
+        "BUCKET_NAME": cfg.get("BUCKET_NAME"),
+        "OSS_DOMAIN": cfg.get("OSS_DOMAIN"),
+        "MARKDOWN_PATH": cfg.get("MARKDOWN_PATH"),
+        "PREFIX": cfg.get("PREFIX")
+    })
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
