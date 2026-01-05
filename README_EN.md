@@ -1,17 +1,20 @@
 <div align="center">
 
-# oss-cleaner
+<img src="img/logo.jpg" width="80%" alt="oss-cleaner">
 
-[中文](./README.md)
+<br>
 
-[![PyPI - Version](https://img.shields.io/pypi/v/oss-cleaner?style=flat-square&logo=pypi&logoColor=white)](https://pypi.org/project/oss-cleaner/)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/oss-cleaner?style=flat-square&logo=python&logoColor=white)](https://pypi.org/project/oss-cleaner/)
-[![Downloads](https://img.shields.io/pypi/dm/oss-cleaner?style=flat-square&logo=pypi&logoColor=white)](https://pypi.org/project/oss-cleaner/)
-[![License](https://img.shields.io/github/license/LinJHS/oss-cleaner?style=flat-square)](LICENSE)
+[![PyPI version](https://img.shields.io/pypi/v/oss-cleaner.svg?style=flat-square&logo=pypi&logoColor=white)](https://pypi.org/project/oss-cleaner/)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/oss-cleaner.svg?style=flat-square&logo=pypi&logoColor=white)](https://pypi.org/project/oss-cleaner/)
+[![Build Status](https://github.com/LinJHS/oss-cleaner/actions/workflows/publish.yml/badge.svg)](https://github.com/LinJHS/oss-cleaner/actions)
+[![Python Versions](https://img.shields.io/pypi/pyversions/oss-cleaner.svg?style=flat-square&logo=python&logoColor=white)](https://pypi.org/project/oss-cleaner/)
+[![License](https://img.shields.io/github/license/LinJHS/oss-cleaner.svg?style=flat-square)](https://github.com/LinJHS/oss-cleaner/blob/main/LICENSE)
+
+**A tool for managing and cleaning "orphan" images in Aliyun OSS, designed for Markdown note users.**
+
+[Chinese Version](README.md) | [Features](#-key-features) • [Installation](#-installation--run) • [Usage](#-quick-start-pip-users)
 
 </div>
-
-**oss-cleaner** is a tool designed for Markdown users to manage and clean orphaned images stored in Aliyun OSS.
 
 It scans your local Markdown folder, analyzes all referenced image links, and compares them with files in your Aliyun OSS bucket. Any OSS images not used in your local Markdown files are identified as "orphaned." You can easily view and batch delete them via a Web UI, saving storage space and costs.
 
