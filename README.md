@@ -38,15 +38,26 @@ pip install -e .
 
 1.  **启动服务**
 
-    安装完成后，在终端运行以下命令启动 Web 服务：
+    安装完成后，在终端运行以下命令启动 Web 服务（默认会自动打开浏览器）：
 
     ```bash
     python -m oss_cleaner
     ```
 
+    **命令行参数：**
+
+    *   `--port <port>`: 指定运行端口 (默认: 6900)
+    *   `--no-browser`: 禁止自动打开浏览器
+    *   `--debug`: 开启调试模式
+
+    例如：
+    ```bash
+    python -m oss_cleaner --port 8080 --no-browser
+    ```
+
 2.  **访问界面**
 
-    打开浏览器访问 [http://localhost:5000](http://localhost:5000)。
+    打开浏览器访问 [http://localhost:6900](http://localhost:6900)。
 
 3.  **配置参数**
 

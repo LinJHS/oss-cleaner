@@ -38,15 +38,26 @@ pip install -e .
 
 1.  **Start the Service**
 
-    After installation, run the following command in your terminal to start the Web service:
+    After installation, run the following command in your terminal to start the Web service (browser opens automatically by default):
 
     ```bash
     python -m oss_cleaner
     ```
 
+    **Command Line Arguments:**
+
+    *   `--port <port>`: Specify the port to run on (default: 6900)
+    *   `--no-browser`: Do not open the browser automatically
+    *   `--debug`: Run in debug mode
+
+    Example:
+    ```bash
+    python -m oss_cleaner --port 8080 --no-browser
+    ```
+
 2.  **Access the UI**
 
-    Open your browser and visit [http://localhost:5000](http://localhost:5000).
+    Open your browser and visit [http://localhost:6900](http://localhost:6900).
 
 3.  **Configuration**
 

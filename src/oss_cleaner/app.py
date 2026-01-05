@@ -4,19 +4,41 @@ import oss2
 from flask import Flask, render_template, request, jsonify
 from .config_manager import AppConfig
 
+try:
+    from ._version import version as __version__
+except ImportError:
+    __version__ = "unknown"
+
 app = Flask(__name__)
+
+# Inject version into all templates
+@app.context_processor
+def inject_version():
+    return dict(version=__version__)
 
 # Initialize Config
 cfg = AppConfig()
 
 def get_oss_url_pattern():
+    domain = cfg.get("OSS_DOMAIN")
+    prefix = cfg.get("PREFIX")
+    if not domain or not prefix:
+        raise ValueError("请先配置 OSS_DOMAIN 和 PREFIX")
     return re.compile(
-        rf'https://{cfg.get("OSS_DOMAIN")}/{cfg.get("PREFIX")}([^\)\s\?]+)')
+        rf'https://{domain}/{prefix}([^\)\s\?]+)')
 
 
 def get_oss_bucket():
-    auth = oss2.Auth(cfg.get_secret("ACCESS_KEY_ID"), cfg.get_secret("ACCESS_KEY_SECRET"))
-    return oss2.Bucket(auth, cfg.get("ENDPOINT"), cfg.get("BUCKET_NAME"))
+    ak_id = cfg.get_secret("ACCESS_KEY_ID")
+    ak_secret = cfg.get_secret("ACCESS_KEY_SECRET")
+    endpoint = cfg.get("ENDPOINT")
+    bucket_name = cfg.get("BUCKET_NAME")
+
+    if not all([ak_id, ak_secret, endpoint, bucket_name]):
+        raise ValueError("请先在配置页面设置 OSS 相关信息 (Access Key, Endpoint, Bucket)")
+
+    auth = oss2.Auth(ak_id, ak_secret)
+    return oss2.Bucket(auth, endpoint, bucket_name)
 
 
 def get_local_used_images():
@@ -42,6 +64,11 @@ def get_oss_images():
     prefix = cfg.get("PREFIX")
     oss_domain = cfg.get("OSS_DOMAIN")
     
+    if not prefix:
+        raise ValueError("请先配置 PREFIX")
+    if not oss_domain:
+        raise ValueError("请先配置 OSS_DOMAIN")
+
     for obj in oss2.ObjectIterator(bucket, prefix=prefix):
         if obj.key != prefix:
             filename = obj.key.replace(prefix, "")
@@ -65,7 +92,8 @@ def index():
         orphans = [f for f in all_oss_files if f['name'] not in used_set]
         return render_template('index.html', orphans=orphans, count=len(orphans))
     except Exception as e:
-        return f"错误: {str(e)}"
+        # 如果发生错误（如配置缺失），仍然渲染页面，但显示错误信息
+        return render_template('index.html', orphans=[], count=0, error=str(e))
 
 
 @app.route('/delete', methods=['POST'])
@@ -116,6 +144,29 @@ def config():
     })
 
 
+@app.route('/test-connection', methods=['POST'])
+def test_connection():
+    data = request.json
+    ak_id = data.get('ACCESS_KEY_ID')
+    ak_secret = data.get('ACCESS_KEY_SECRET')
+    endpoint = data.get('ENDPOINT')
+    bucket_name = data.get('BUCKET_NAME')
+
+    if not all([ak_id, ak_secret, endpoint, bucket_name]):
+        return jsonify({"status": "error", "message": "请填写完整的 OSS 配置信息"})
+
+    try:
+        auth = oss2.Auth(ak_id, ak_secret)
+        bucket = oss2.Bucket(auth, endpoint, bucket_name)
+        # 尝试获取 Bucket 信息来验证连接和权限
+        bucket.get_bucket_info()
+        return jsonify({"status": "success", "message": "连接成功！配置有效。"})
+    except oss2.exceptions.OssError as e:
+        return jsonify({"status": "error", "message": f"OSS 错误: {e.message} (Code: {e.code})"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"连接失败: {str(e)}"})
+
+
 @app.route('/select-folder')
 def select_folder():
     try:
@@ -145,4 +196,4 @@ def select_folder():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=6900)

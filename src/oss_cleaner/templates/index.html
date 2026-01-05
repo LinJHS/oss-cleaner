@@ -222,6 +222,21 @@
         </div>
     </nav>
 
+    {% if error %}
+    <div class="container mt-4">
+        <div class="alert alert-warning alert-dismissible fade show shadow-sm border-warning" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-warning"></i>
+                <div>
+                    <h5 class="alert-heading fw-bold mb-1">需要配置</h5>
+                    <p class="mb-0">{{ error }}</p>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="container">
         <!-- Config Dialog -->
         <dialog id="configDialog" style="width: 90%; max-width: 800px;">
@@ -268,9 +283,14 @@
                         </div>
                     </form>
                 </div>
-                <div class="modal-footer border-top-0 p-4">
-                    <button type="button" class="btn btn-light" onclick="document.getElementById('configDialog').close()">取消</button>
-                    <button type="button" class="btn btn-primary px-4" id="saveConfigBtn">保存配置</button>
+                <div class="modal-footer border-top-0 p-4 d-flex justify-content-between">
+                    <button type="button" class="btn btn-info text-white" id="testConnBtn">
+                        <i class="bi bi-lightning-charge-fill"></i> 测试连接
+                    </button>
+                    <div>
+                        <button type="button" class="btn btn-light me-2" onclick="document.getElementById('configDialog').close()">取消</button>
+                        <button type="button" class="btn btn-primary px-4" id="saveConfigBtn">保存配置</button>
+                    </div>
                 </div>
             </div>
         </dialog>
@@ -304,7 +324,7 @@
             {% endfor %}
         </div>
         
-        {% if count == 0 %}
+        {% if count == 0 and not error %}
         <div class="empty-state">
             <i class="bi bi-check-circle-fill text-success"></i>
             <h3 class="fw-bold text-dark">太棒了！</h3>
@@ -313,7 +333,20 @@
         {% endif %}
     </div>
 
+    <footer class="text-center text-muted py-4 mt-5 border-top">
+        <div class="container">
+            <small>OSS Cleaner v{{ version }}</small>
+        </div>
+    </footer>
+
     <script>
+        // Auto open config if error
+        {% if error %}
+        window.addEventListener('DOMContentLoaded', () => {
+            openConfig();
+        });
+        {% endif %}
+
         // Toggle card styling when checkbox changes
         function toggleCardSelection(checkbox, cardId) {
             const card = document.getElementById(cardId);
@@ -394,6 +427,37 @@
                 }
             } catch (e) {
                 alert('保存失败: ' + e);
+            }
+        };
+
+        // 测试连接逻辑
+        document.getElementById('testConnBtn').onclick = async function() {
+            const btn = this;
+            const originalHtml = btn.innerHTML;
+            const form = document.getElementById('configForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 连接中...';
+
+            try {
+                const resp = await fetch('/test-connection', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await resp.json();
+                if (result.status === 'success') {
+                    alert('✅ ' + result.message);
+                } else {
+                    alert('❌ ' + result.message);
+                }
+            } catch (e) {
+                alert('❌ 网络请求失败: ' + e);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
             }
         };
 
