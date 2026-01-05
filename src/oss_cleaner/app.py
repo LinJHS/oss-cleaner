@@ -115,5 +115,34 @@ def config():
         "PREFIX": cfg.get("PREFIX")
     })
 
+
+@app.route('/select-folder')
+def select_folder():
+    try:
+        import tkinter as tk
+        from tkinter import filedialog
+        
+        # Create a hidden root window
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes('-topmost', True)
+        
+        # Open directory selection dialog
+        folder_path = filedialog.askdirectory()
+        
+        # Destroy the root window
+        root.destroy()
+        
+        if folder_path:
+            # Normalize path separators
+            folder_path = os.path.normpath(folder_path)
+            return jsonify({"status": "success", "path": folder_path})
+        else:
+            return jsonify({"status": "cancelled"})
+            
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

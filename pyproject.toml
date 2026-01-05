@@ -3,7 +3,7 @@ requires = ["hatchling", "setuptools-scm"]
 build-backend = "hatchling.build"
 
 [project]
-name = "oss-images-manager"
+name = "oss-cleaner"
 dynamic = ["version"]
 description = "Manage and clean orphaned images stored in Aliyun OSS for Markdown projects."
 requires-python = ">=3.8"
@@ -13,19 +13,19 @@ dependencies = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/oss_images_manager"]
+packages = ["src/oss_cleaner"]
 include = [
-  "src/oss_images_manager/templates/**"
+  "src/oss_cleaner/templates/**"
 ]
 
 [tool.hatch.build.targets.sdist]
 include = [
-  "src/oss_images_manager"
+  "src/oss_cleaner"
 ]
 
 [tool.hatch.version]
-path = "src/oss_images_manager/_version.py"
+path = "src/oss_cleaner/_version.py"
 
 [tool.setuptools_scm]
-write_to = "src/oss_images_manager/_version.py"
+write_to = "src/oss_cleaner/_version.py"
 

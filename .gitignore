@@ -5,7 +5,7 @@ __pycache__/
 dist/
 build/
 *.egg-info/
-src/oss_images_manager/_version.py
+src/oss_cleaner/_version.py
 
 *.bat
 .vscode/settings.json
